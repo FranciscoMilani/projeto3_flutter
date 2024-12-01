@@ -1,16 +1,18 @@
-import 'dart:ffi';
+import 'dart:ui';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
-import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
-import 'dart:convert';
 
 import 'package:projeto_avaliativo_3/models/keyword.dart';
-import 'package:projeto_avaliativo_3/models/news.dart';
-import 'package:projeto_avaliativo_3/notification_manager.dart';
+import 'package:projeto_avaliativo_3/services/notification_manager.dart';
 import 'package:projeto_avaliativo_3/services/api_service.dart';
+import 'package:projeto_avaliativo_3/services/background_tasks_service.dart';
 import 'notification_settings_screen.dart';
+
+const tarefaRecorrenteCada15Minutos = "tarefabk1";
+const tarefaComProblema             = "tarefabk2";
+
 
 class KeywordsListScreen extends StatefulWidget {
   const KeywordsListScreen({super.key});
@@ -32,47 +34,50 @@ class _KeywordsListScreenScreenState extends State<KeywordsListScreen> {
   void initState() {
     super.initState();
     _configureNotifications();
-    _syncNews(); // REMOVER, VAI SER CHAMADO NO PROCESSAMENTO EM BG
-    // consultar();
+    _syncNews();
+    _initializeTaskProcessing();
+  }
+
+  Future<void> _initializeTaskProcessing() async {
+    await BackgroundTasksService.initialize();
+    BackgroundTasksService.registerOneTimeTask(Keyword.extractKeywords(_keywords));
+    await BackgroundTasksService.fetchDataAndNotify();
   }
 
   Future<void> _configureNotifications() async {
     await _notificationManager.configurarNotificacaoLocal();
   }
-
-  // Trigger API calls
+  
   Future<void> _syncNews() async {
-    List<String?> activeKeywords =
-    _keywords.where((k) => k.fetchActive).map((k) => k.keyword).toList();
+    var activeKeywordsEntities = _keywords.where((k) => k.fetchActive);
+    List<String?> activeKeywords = Keyword.extractKeywords(activeKeywordsEntities);
 
     try {
       //var result1 = await apiService.fetchNewsApi(activeKeywords);
       var result2 = await apiService.fetchNewsData(activeKeywords);
 
-      for (var result in result2) {
-        _notificationManager.notificacoesLocais.show(
-          payload: jsonEncode(result.toJson()),
-          0,
-          'Sync Completed',
-          'News data has been successfully updated!',
-          const NotificationDetails(
-            android: AndroidNotificationDetails(
-              'sync_channel', 'News Sync',
-              channelDescription: 'Channel for syncing news data',
-              importance: Importance.high,
-              priority: Priority.high,
-            ),
-            iOS: DarwinNotificationDetails(),
+      _notificationManager.notificacoesLocais.show(
+        0,
+        'Sincronizando',
+        'Buscando dados das APIs NewsApi e NewsData...',
+        const NotificationDetails(
+          android: AndroidNotificationDetails(
+            'sync_channel', 'News Sync',
+            channelDescription: 'Channel for syncing news data',
+            importance: Importance.high,
+            priority: Priority.high,
           ),
-        );
+        ),
+      );
 
-      }
-
+      // for (var result in result2) {
+      //   // se encotnrar...
+      // }
     } catch (e) {
       _notificationManager.notificacoesLocais.show(
         0,
-        'Sync Failed',
-        'An error occurred while syncing news.',
+        'Sincronização falhou',
+        'Um erro ocorreu na sincronização das notícias',
         const NotificationDetails(
           android: AndroidNotificationDetails(
             'error_channel', 'News Sync Error',
@@ -225,7 +230,6 @@ class _KeywordsListScreenScreenState extends State<KeywordsListScreen> {
   }
 
   _confirmDelete(Keyword keyword) {
-    // TODO: BANCO?
     setState(() {
       _keywords.remove(keyword);
     });

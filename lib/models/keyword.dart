@@ -9,4 +9,8 @@ class Keyword {
     this.fetchActive = true,
     DateTime? createdDate,
   }) : createdDate = createdDate ?? DateTime.now();
+
+  static List<String> extractKeywords(Iterable<Keyword> keywords) {
+    return keywords.map((e) => e.keyword).toList();
+  }
 }

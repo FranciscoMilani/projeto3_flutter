@@ -43,3 +43,32 @@ android {
 flutter {
     source = "../.."
 }
+
+allprojects {
+    repositories {
+        google()
+        mavenCentral()
+    }
+    configurations.all {
+        resolutionStrategy.eachDependency { details ->
+            if (details.requested.group == 'androidx.appcompat' && details.requested.name == 'appcompat') {
+                details.useVersion '1.6.1'
+            }
+            if (details.requested.group == 'androidx.appcompat' && details.requested.name == 'appcompat-resources') {
+                details.useVersion '1.6.1'
+            }
+        }
+    }
+}
+
+configurations.all {
+    resolutionStrategy {
+        force 'androidx.appcompat:appcompat:1.6.1'
+    }
+}
+
+dependencies {
+    implementation 'androidx.appcompat:appcompat:1.6.1'
+    implementation 'androidx.multidex:multidex:2.0.1'
+    implementation 'androidx.core:core-ktx:1.10.1'
+}

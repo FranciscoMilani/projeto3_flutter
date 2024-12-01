@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:projeto_avaliativo_3/notification_manager.dart';
+import 'package:projeto_avaliativo_3/services/notification_manager.dart';
 import 'package:projeto_avaliativo_3/screens/home_screen.dart';
 import 'package:projeto_avaliativo_3/screens/news_detail.dart';
 

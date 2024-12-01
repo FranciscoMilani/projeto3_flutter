@@ -50,9 +50,9 @@ class ApiService {
       if (response.statusCode == 200) {
         // notificar que está sincronizando
         final Map<String, dynamic> decodedResponse = jsonDecode(response.body);
-        final List<dynamic> newsFromApi = decodedResponse['articles'];
+        final List<dynamic> newsFromApi = decodedResponse['results'];
 
-        if (int.tryParse(decodedResponse['totalResults'])! > 0 && newsFromApi.isNotEmpty) {
+        if (newsFromApi.isNotEmpty) {
           return newsFromApi.map((x) {
             return News.fromJsonNewsData(x, new Keyword(keyword: "teste"));      // TODO: Passar keyword usada na consulta
           }).toList();

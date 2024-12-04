@@ -1,6 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class NotificationSettingsScreen extends StatefulWidget {
+
+  const NotificationSettingsScreen({
+    Key? key,
+  }) : super(key: key);
+
   @override
   _NotificationSettingsScreenState createState() =>
       _NotificationSettingsScreenState();
@@ -11,7 +17,20 @@ class _NotificationSettingsScreenState
   bool newsNotificationsEnabled = true;
   bool syncWarningsEnabled = true;
   bool issueNotificationsEnabled = true;
-  int syncInterval = 1;
+  int syncInterval = 15;
+
+  void _saveSettings() async {
+
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('news_notifications', newsNotificationsEnabled);
+    await prefs.setBool('sync_warnings', syncWarningsEnabled);
+    await prefs.setBool('issue_notifications', issueNotificationsEnabled);
+    await prefs.setInt('sync_interval', syncInterval);
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Configurações salvas com sucesso!')),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -63,9 +82,9 @@ class _NotificationSettingsScreenState
             ),
             Slider(
               value: syncInterval.toDouble(),
-              min: 1,
+              min: 15,
               max: 60,
-              divisions: 12,
+              divisions: 16,
               label: '$syncInterval minutos',
               onChanged: (value) {
                 setState(() {
@@ -83,20 +102,6 @@ class _NotificationSettingsScreenState
           ],
         ),
       ),
-    );
-  }
-
-  void _saveSettings() {
-    // Save the settings in a local database or preferences.
-    // Example:
-    // SharedPreferences prefs = await SharedPreferences.getInstance();
-    // await prefs.setBool('news_notifications', newsNotificationsEnabled);
-    // await prefs.setBool('sync_warnings', syncWarningsEnabled);
-    // await prefs.setBool('issue_notifications', issueNotificationsEnabled);
-    // await prefs.setInt('sync_interval', syncInterval);
-
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Configurações salvas com sucesso!')),
     );
   }
 }

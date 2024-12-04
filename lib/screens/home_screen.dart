@@ -1,18 +1,14 @@
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
-import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:intl/intl.dart';
 
 import 'package:projeto_avaliativo_3/models/keyword.dart';
 import 'package:projeto_avaliativo_3/services/notification_manager.dart';
 import 'package:projeto_avaliativo_3/services/api_service.dart';
 import 'package:projeto_avaliativo_3/services/background_tasks_service.dart';
+import 'package:projeto_avaliativo_3/util/globals.dart';
 import 'notification_settings_screen.dart';
-
-const tarefaRecorrenteCada15Minutos = "tarefabk1";
-const tarefaComProblema             = "tarefabk2";
-
 
 class KeywordsListScreen extends StatefulWidget {
   const KeywordsListScreen({super.key});
@@ -23,147 +19,23 @@ class KeywordsListScreen extends StatefulWidget {
 
 class _KeywordsListScreenScreenState extends State<KeywordsListScreen> {
   final NotificationManager _notificationManager = NotificationManager();
+  final BackgroundTasksService _bgTaskService = BackgroundTasksService();
   final ApiService apiService = ApiService();
-
-  final List<Keyword> _keywords = [
-    Keyword(keyword: "bolsonaro", fetchActive: false),
-    Keyword(keyword: "trump", fetchActive: true),
-  ];
 
   @override
   void initState() {
     super.initState();
     _configureNotifications();
-    _syncNews();
     _initializeTaskProcessing();
   }
 
   Future<void> _initializeTaskProcessing() async {
-    await BackgroundTasksService.initialize();
-    BackgroundTasksService.registerOneTimeTask(Keyword.extractKeywords(_keywords));
-    await BackgroundTasksService.fetchDataAndNotify();
+    await _bgTaskService.initialize();
   }
 
   Future<void> _configureNotifications() async {
     await _notificationManager.configurarNotificacaoLocal();
   }
-  
-  Future<void> _syncNews() async {
-    var activeKeywordsEntities = _keywords.where((k) => k.fetchActive);
-    List<String?> activeKeywords = Keyword.extractKeywords(activeKeywordsEntities);
-
-    try {
-      //var result1 = await apiService.fetchNewsApi(activeKeywords);
-      var result2 = await apiService.fetchNewsData(activeKeywords);
-
-      _notificationManager.notificacoesLocais.show(
-        0,
-        'Sincronizando',
-        'Buscando dados das APIs NewsApi e NewsData...',
-        const NotificationDetails(
-          android: AndroidNotificationDetails(
-            'sync_channel', 'News Sync',
-            channelDescription: 'Channel for syncing news data',
-            importance: Importance.high,
-            priority: Priority.high,
-          ),
-        ),
-      );
-
-      // for (var result in result2) {
-      //   // se encotnrar...
-      // }
-    } catch (e) {
-      _notificationManager.notificacoesLocais.show(
-        0,
-        'Sincronização falhou',
-        'Um erro ocorreu na sincronização das notícias',
-        const NotificationDetails(
-          android: AndroidNotificationDetails(
-            'error_channel', 'News Sync Error',
-            channelDescription: 'Channel for news sync errors',
-            importance: Importance.high,
-            priority: Priority.high,
-          ),
-          iOS: DarwinNotificationDetails(),
-        ),
-      );
-    } finally {
-      setState(() {
-
-      });
-    }
-  }
-
-  // Future<void> consultar() async {
-  //   setState(() {
-  //     isLoading = true;
-  //   });
-  //
-  //   final dbHelper = BancoHelper();
-  //   await dbHelper.iniciarBD();
-  //   final produtosLocal = await dbHelper.buscarProdutos();
-  //
-  //   // Busca do banco se houver produto. Se não, busca da API
-  //   if (produtosLocal.isNotEmpty) {
-  //     setState(() {
-  //       produtos = produtosLocal;
-  //       isLoading = false;
-  //     });
-  //   } else if (primeiroUso) {
-  //     await sincronizarDados();
-  //   } else {
-  //     setState(() {
-  //       isLoading = false;
-  //     });
-  //   }
-  // }
-
-  // Future<void> deletarProduto(int id) async {
-  //   final dbHelper = BancoHelper();
-  //   await dbHelper.deletarProduto(id);
-  //   await consultar();
-  // }
-  //
-  // Future<void> editarProduto(Produto produto) async {
-  //   final dbHelper = BancoHelper();
-  //   await dbHelper.upsertProduto(produto);
-  //   await consultar();
-  // }
-  //
-  // void _abrirTelaEdicao(Produto? produto) {
-  //   Navigator.push(
-  //     context,
-  //     MaterialPageRoute(
-  //       builder: (context) => ProdutoFormScreen(
-  //         produto: produto,
-  //         onSalvar: editarProduto,
-  //       ),
-  //     ),
-  //   );
-  // }
-
-  // void _confirmarDelecao(Produto produto) {
-  //   showDialog(
-  //     context: context,
-  //     builder: (context) => AlertDialog(
-  //       title: const Text('Confirmar exclusão'),
-  //       content: Text('Tem certeza que deseja excluir "${produto.nome}"?'),
-  //       actions: [
-  //         TextButton(
-  //           onPressed: () => Navigator.pop(context),
-  //           child: const Text('Cancelar'),
-  //         ),
-  //         TextButton(
-  //           onPressed: () async {
-  //             await deletarProduto(produto.id);
-  //             Navigator.pop(context);
-  //           },
-  //           child: const Text('Confirmar'),
-  //         ),
-  //       ],
-  //     ),
-  //   );
 
   _openKeywordDialog() {
     String newKeyword = '';
@@ -208,8 +80,8 @@ class _KeywordsListScreenScreenState extends State<KeywordsListScreen> {
                 ),
                 TextButton(
                   onPressed: () {
-                    if (newKeyword.isNotEmpty && !_keywords.any((x) => x.keyword == newKeyword)) {
-                      setState(() => _keywords.add(Keyword(keyword: newKeyword, fetchActive: isCheckedActive)));
+                    if (newKeyword.isNotEmpty && !keywords.any((x) => x.keyword == newKeyword)) {
+                      setState(() => keywords.add(Keyword(keyword: newKeyword, fetchActive: isCheckedActive)));
                     }
                     Navigator.pop(context);
                   },
@@ -231,7 +103,7 @@ class _KeywordsListScreenScreenState extends State<KeywordsListScreen> {
 
   _confirmDelete(Keyword keyword) {
     setState(() {
-      _keywords.remove(keyword);
+      keywords.remove(keyword);
     });
   }
 
@@ -260,9 +132,9 @@ class _KeywordsListScreenScreenState extends State<KeywordsListScreen> {
         children: [
           Expanded(
             child:  ListView.builder(
-            itemCount: _keywords.length,
+            itemCount: keywords.length,
               itemBuilder: (context, index) {
-                final keyword = _keywords[index];
+                final keyword = keywords[index];
                 return Card(
                   elevation: 2,
                   margin: const EdgeInsets.symmetric(vertical: 4, horizontal: 16),

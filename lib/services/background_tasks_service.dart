@@ -1,32 +1,75 @@
+import 'dart:math';
+
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:projeto_avaliativo_3/models/keyword.dart';
+import 'package:projeto_avaliativo_3/services/api_service.dart';
+import 'package:projeto_avaliativo_3/services/notification_manager.dart';
+import 'package:projeto_avaliativo_3/util/globals.dart';
 import 'package:workmanager/workmanager.dart';
 
 const String oneTimeTask = "oneTimeTask";
 const String periodicTask = "periodicTask";
 
-class BackgroundTasksService {
-  static Future<void> initialize() async {
-    await Workmanager().initialize(callbackDispatcher, isInDebugMode: true);
-  }
+@pragma('vm:entry-point')
+void callbackDispatcher() {
+  Workmanager().executeTask((task, inputData) async {
+    if (task == oneTimeTask || task == periodicTask) {
+      await BackgroundTasksService.fetchDataAndNotify();
+    }
+    return Future.value(true);
+  });
+}
 
-  static void callbackDispatcher() {
-    Workmanager().executeTask((task, inputData) async {
-      print("Executing task: $task");
-      if (task == oneTimeTask) {
-        print("Running one-time task...");
-        await fetchDataAndNotify();
-      } else if (task == periodicTask) {
-        print("Running periodic task...");
-        await fetchDataAndNotify();
-      }
-      return Future.value(true);
-    });
+class BackgroundTasksService {
+  static final NotificationManager _notificationManager = NotificationManager();
+  static final ApiService _apiService = ApiService();
+
+  Future<void> initialize() async {
+    await Workmanager().initialize(callbackDispatcher, isInDebugMode: true);
+    await _notificationManager.configurarNotificacaoLocal();
+    registerOneTimeTask(Keyword.extractKeywords(keywords));
+    await fetchDataAndNotify(); // busca inicial
   }
 
   static Future<void> fetchDataAndNotify() async {
-    print("Fetching data from API...");
-    await Future.delayed(Duration(seconds: 2));
-    print("Sending notification...");
+    await _notificationManager.notificacoesLocais.show(
+      0,
+      'Sincronizando',
+      'Buscando dados das APIs NewsApi e NewsData...',
+      const NotificationDetails(
+        android: AndroidNotificationDetails(
+          'sync_channel', 'News Sync',
+          channelDescription: 'Canal de sincronização',
+          importance: Importance.high,
+          priority: Priority.high,
+        ),
+      ),
+    );
+
+    try {
+      var activeKeywordsEntities =  keywords.where((k) => k.fetchActive);
+      List<String?> activeKeywords = Keyword.extractKeywords(activeKeywordsEntities);
+
+      await _apiService.fetchNews(activeKeywords, true);
+      await _apiService.fetchNews(activeKeywords, false);
+
+      // _notificationManager.SendNotification(Random().nextInt(100000), resultNewsApi.firstOrNull);
+
+    } catch (e) {
+      await _notificationManager.notificacoesLocais.show(
+        1,
+        'Erro na Sincronização',
+        'Falha ao buscar dados: $e',
+        const NotificationDetails(
+          android: AndroidNotificationDetails(
+            'error_channel', 'News Sync Error',
+            channelDescription: 'Canal de sincronização',
+            importance: Importance.high,
+            priority: Priority.high,
+          ),
+        ),
+      );
+    }
   }
 
   static void registerOneTimeTask(List<String> keywords) {

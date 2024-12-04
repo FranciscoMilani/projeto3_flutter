@@ -9,7 +9,7 @@ class News {
   final String? publishedAt;
   final String? content;
   final String? creator;
-  final Keyword keyword;
+  final String? keyword;
 
   News({
     this.title,
@@ -22,7 +22,7 @@ class News {
     required this.keyword
   });
 
-  factory News.fromJsonNewsApi(Map<String, dynamic> json, Keyword keyword) {
+  factory News.fromJsonNewsApi(Map<String, dynamic> json, Keyword? keyword) {
     return News(
       title: json['title'],
       description: json['description'],
@@ -31,11 +31,11 @@ class News {
       publishedAt: json['publishedAt'],
       content: json['content'],
       creator: json['author'],
-      keyword: keyword
+      keyword: keyword?.keyword
     );
   }
 
-  factory News.fromJsonNewsData(Map<String, dynamic> json, Keyword keyword) {
+  factory News.fromJsonNewsData(Map<String, dynamic> json, Keyword? keyword) {
     return News(
       title: json['title'],
       description: json['description'],
@@ -44,7 +44,20 @@ class News {
       publishedAt: json['pubDate'],
       content: json['content'],
       creator: json['creator'],
-      keyword: keyword
+      keyword: keyword?.keyword
+    );
+  }
+
+  factory News.fromNewsJson(Map<String, dynamic> json) {
+    return News(
+        title: json['title'],
+        description: json['description'],
+        url: json['url'],
+        imageUrl: json['imageUrl'],
+        publishedAt: json['publishedAt'],
+        content: json['content'],
+        creator: json['creator'],
+        keyword: json['keyword']
     );
   }
 
@@ -57,7 +70,7 @@ class News {
       'publishedAt': publishedAt,
       'content': content,
       'creator': creator,
-      'keyword': keyword.keyword
+      'keyword': keyword
     };
   }
 }

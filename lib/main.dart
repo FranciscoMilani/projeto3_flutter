@@ -15,13 +15,14 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: "Projeto Avaliativo 3",
       theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
+        colorScheme: ColorScheme.fromSeed(seedColor: Colors.redAccent),
         useMaterial3: true,
       ),
       home: KeywordsListScreen(),
       navigatorKey: chaveDeNavegacao,
       routes: {
-        '/aviso': (context) => /*const*/ NewsDetailScreen(),
+        '/principal': (context) => KeywordsListScreen(),
+        '/detalhes': (context) => NewsDetailScreen(),
       },
     );
   }

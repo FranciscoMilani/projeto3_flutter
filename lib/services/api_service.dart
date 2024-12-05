@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
@@ -7,57 +9,51 @@ import 'package:projeto_avaliativo_3/services/notification_manager.dart';
 import 'package:projeto_avaliativo_3/services/preference_service.dart';
 
 class ApiService {
-  Future<List<dynamic>> fetchNews(List<String?> keywords, bool useNewsApi) async {
-    if (keywords.isEmpty) {
-      return List.empty();
-    }
-
-    bool newsNotificationsEnabled =
-    await PreferenceService.isFeatureEnabled('news_notifications');
-    if (!newsNotificationsEnabled) {
-      return List.empty();
-    }
+  Future<void> fetchNews(List<Keyword> keywords, bool useNewsApi) async {
+    if (keywords.isEmpty) return;
+    // if (!await PreferenceService.isFeatureEnabled('news_notifications')) return;
 
     Map<String, String> apiKeys = await getApiKeys();
-    String queryString = keywords.join("+OR+");
-    String url = useNewsApi
-        ? "https://newsapi.org/v2/top-headlines?q=${queryString}&apiKey=${apiKeys['NEWSAPI_API_KEY']!}"
-        : "https://newsdata.io/api/1/latest?apikey=${apiKeys['NEWSDATA_API_KEY']!}&q=${queryString}";
 
-    try {
-      final response = await http.get(Uri.parse(url));
-      if (response.statusCode == 200) {
-        await PreferenceService.notifyIfEnabled('sync_warnings', 'Synchronization in progress...');
+    for (var keyword in keywords) {
+      if (keyword.keyword == null || keyword!.keyword.isEmpty) continue;
 
-        final Map<String, dynamic> decodedResponse = jsonDecode(response.body);
-        final List<dynamic> articles = useNewsApi
-            ? decodedResponse['articles']
-            : decodedResponse['results'];
+      String url = useNewsApi
+          ? "https://newsapi.org/v2/top-headlines?q=${keyword.keyword}&apiKey=${apiKeys['NEWSAPI_API_KEY']!}"
+          : "https://newsdata.io/api/1/latest?apikey=${apiKeys['NEWSDATA_API_KEY']!}&q=${keyword.keyword}";
 
-        if (articles.isNotEmpty) {
-          List<News> newsList = articles.map((x) {
-            return useNewsApi
-                ? News.fromJsonNewsApi(x, Keyword(keyword: "teste"))
-                : News.fromJsonNewsData(x, Keyword(keyword: "teste"));
-          }).toList();
+      try {
+        final response = await http.get(Uri.parse(url));
 
-          String newsJson = jsonEncode({
-            ...newsList[0].toJson(),
-            'api': useNewsApi ? 'newsapi' : 'newsdata',
-          });
+        if (response.statusCode == 200) {
+          final Map<String, dynamic> decodedResponse = jsonDecode(response.body);
+          final List<dynamic> articles = useNewsApi
+              ? decodedResponse['articles']
+              : decodedResponse['results'];
 
-          NotificationManager().SendNotification(2, newsList[0], newsJson);
+          if (articles.isNotEmpty) {
+            List<News> newsList = articles.map((x) {
+              return useNewsApi
+                  ? News.fromJsonNewsApi(x, keyword)
+                  : News.fromJsonNewsData(x, keyword);
+            }).toList();
 
-          return articles;
+            Map<String, dynamic> notificationPayload = {
+              ...newsList[0].toJson(),
+              'api': useNewsApi ? 'newsapi' : 'newsdata',
+            };
+
+            String newsJson = jsonEncode(notificationPayload);
+
+            NotificationManager().sendNewsNotification(10, newsList[0], newsJson);
+          }
+        }
+      } catch (e) {
+        if (await PreferenceService.isFeatureEnabled('issue_notifications')) {
+          NotificationManager().sendProcessNotification(3, "Erro", "Exceção para '${keyword.keyword}': $e");
         }
       }
-    } catch (e) {
-      await PreferenceService.notifyIfEnabled(
-          'issue_notifications', 'Error during API call: $e');
-      return List.empty();
     }
-
-    return List.empty();
   }
 
   static Future<Map<String, String>> getApiKeys() async {

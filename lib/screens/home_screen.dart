@@ -18,24 +18,24 @@ class KeywordsListScreen extends StatefulWidget {
 }
 
 class _KeywordsListScreenScreenState extends State<KeywordsListScreen> {
-  final NotificationManager _notificationManager = NotificationManager();
-  final BackgroundTasksService _bgTaskService = BackgroundTasksService();
+  // final NotificationManager _notificationManager = NotificationManager();
+  // final BackgroundTasksService _bgTaskService = BackgroundTasksService();
   final ApiService apiService = ApiService();
 
   @override
   void initState() {
     super.initState();
-    _configureNotifications();
-    _initializeTaskProcessing();
+    // _configureNotifications();
+    // _initializeTaskProcessing();
   }
 
-  Future<void> _initializeTaskProcessing() async {
-    await _bgTaskService.initialize();
-  }
+  // Future<void> _initializeTaskProcessing() async {
+  //   await _bgTaskService.initialize();
+  // }
 
-  Future<void> _configureNotifications() async {
-    await _notificationManager.configurarNotificacaoLocal();
-  }
+  // Future<void> _configureNotifications() async {
+  //   await _notificationManager.configurarNotificacaoLocal();
+  // }
 
   _openKeywordDialog() {
     String newKeyword = '';

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:projeto_avaliativo_3/services/background_tasks_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class NotificationSettingsScreen extends StatefulWidget {
@@ -19,13 +20,34 @@ class _NotificationSettingsScreenState
   bool issueNotificationsEnabled = true;
   int syncInterval = 15;
 
-  void _saveSettings() async {
+  @override
+  void initState() {
+    super.initState();
+    _loadSettings();
+  }
 
+  _loadSettings() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    setState(() {
+      newsNotificationsEnabled = prefs.getBool('news_notifications') ?? true;
+      syncWarningsEnabled = prefs.getBool('sync_warnings') ?? true;
+      issueNotificationsEnabled = prefs.getBool('issue_notifications') ?? true;
+      syncInterval = prefs.getInt('sync_interval') ?? 15;
+    });
+  }
+
+  void _saveSettings() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     await prefs.setBool('news_notifications', newsNotificationsEnabled);
     await prefs.setBool('sync_warnings', syncWarningsEnabled);
     await prefs.setBool('issue_notifications', issueNotificationsEnabled);
     await prefs.setInt('sync_interval', syncInterval);
+
+    if (!newsNotificationsEnabled) {
+      BackgroundTasksService.cancelTasks();
+    } else {
+      BackgroundTasksService.registerPeriodicTask(frequency: Duration(minutes: syncInterval));
+    }
 
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(content: Text('Configurações salvas com sucesso!')),

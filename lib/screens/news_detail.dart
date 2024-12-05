@@ -2,8 +2,10 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../models/news.dart';
+
 
 class NewsDetailScreen extends StatefulWidget {
   const NewsDetailScreen({super.key});
@@ -21,7 +23,7 @@ class _NewsDetailScreenState extends State<NewsDetailScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Notícias"),
+        title: const Text("Notícia"),
         centerTitle: true,
         backgroundColor: Colors.white,
       ),
@@ -82,35 +84,30 @@ class _NewsDetailScreenState extends State<NewsDetailScreen> {
                     ],
                   ),
                   const SizedBox(height: 8),
-                  Align(
-                    alignment: Alignment.centerRight,
-                    child: ElevatedButton(
-                      onPressed: () {
-                        if (news.url != null) {
-                          _openUrl(context, news.url!);
-                        }
-                      },
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.grey,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8),
-                        ),
+                  if (news.keyword != null && news.keyword!.isNotEmpty)
+                    Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 8.0),
+                      child: Row(
+                        children: [
+                          Icon(Icons.label, color: Colors.blue),
+                          const SizedBox(width: 8),
+                          Text(
+                            news.keyword!,
+                            style: const TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w600,
+                              color: Colors.blue,
+                            ),
+                          ),
+                        ],
                       ),
-                      child: const Text("Ler mais"),
                     ),
-                  ),
                 ],
               ),
             ),
           ],
         ),
       )
-    );
-  }
-
-  void _openUrl(BuildContext context, String url) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text("Abrindo notícia: $url")),
     );
   }
 }

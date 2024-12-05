@@ -4,9 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
 import 'package:projeto_avaliativo_3/models/keyword.dart';
-import 'package:projeto_avaliativo_3/services/notification_manager.dart';
 import 'package:projeto_avaliativo_3/services/api_service.dart';
-import 'package:projeto_avaliativo_3/services/background_tasks_service.dart';
 import 'package:projeto_avaliativo_3/util/globals.dart';
 import 'notification_settings_screen.dart';
 
@@ -18,24 +16,12 @@ class KeywordsListScreen extends StatefulWidget {
 }
 
 class _KeywordsListScreenScreenState extends State<KeywordsListScreen> {
-  // final NotificationManager _notificationManager = NotificationManager();
-  // final BackgroundTasksService _bgTaskService = BackgroundTasksService();
   final ApiService apiService = ApiService();
 
   @override
   void initState() {
     super.initState();
-    // _configureNotifications();
-    // _initializeTaskProcessing();
   }
-
-  // Future<void> _initializeTaskProcessing() async {
-  //   await _bgTaskService.initialize();
-  // }
-
-  // Future<void> _configureNotifications() async {
-  //   await _notificationManager.configurarNotificacaoLocal();
-  // }
 
   _openKeywordDialog() {
     String newKeyword = '';

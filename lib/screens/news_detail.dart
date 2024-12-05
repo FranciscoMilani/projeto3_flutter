@@ -2,10 +2,8 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:url_launcher/url_launcher.dart';
 
 import '../models/news.dart';
-
 
 class NewsDetailScreen extends StatefulWidget {
   const NewsDetailScreen({super.key});
@@ -89,7 +87,7 @@ class _NewsDetailScreenState extends State<NewsDetailScreen> {
                       padding: const EdgeInsets.symmetric(vertical: 8.0),
                       child: Row(
                         children: [
-                          Icon(Icons.label, color: Colors.blue),
+                          const Icon(Icons.label, color: Colors.blue),
                           const SizedBox(width: 8),
                           Text(
                             news.keyword!,

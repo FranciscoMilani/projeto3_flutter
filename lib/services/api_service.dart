@@ -45,7 +45,7 @@ class ApiService {
 
             String newsJson = jsonEncode(notificationPayload);
 
-            NotificationManager().sendNewsNotification(10, newsList[0], newsJson);
+            NotificationManager().sendNewsNotification(Random().nextInt(1000), newsList[0], newsJson);
           }
         }
       } catch (e) {

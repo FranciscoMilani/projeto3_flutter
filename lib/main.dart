@@ -7,17 +7,17 @@ import 'package:projeto_avaliativo_3/screens/news_detail.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  final NotificationManager _notificationManager = NotificationManager();
-  final BackgroundTasksService _bgTaskService = BackgroundTasksService();
+  final NotificationManager notificationManager = NotificationManager();
+  final BackgroundTasksService bgTaskService = BackgroundTasksService();
 
-  await _bgTaskService.initialize();
-  await _notificationManager.configurarNotificacaoLocal();
+  await bgTaskService.initialize();
+  await notificationManager.configurarNotificacaoLocal();
 
-  runApp(MyApp());
+  runApp(const MyApp());
 }
 
 class MyApp extends StatelessWidget {
-  MyApp({super.key});
+  const MyApp({super.key});
 
   @override
   Widget build(BuildContext context) {

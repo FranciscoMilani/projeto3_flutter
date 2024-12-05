@@ -1,7 +1,3 @@
-import 'dart:convert';
-
-import 'package:flutter_local_notifications/flutter_local_notifications.dart';
-import 'package:projeto_avaliativo_3/database/banco_helper.dart';
 import 'package:projeto_avaliativo_3/models/keyword.dart';
 import 'package:projeto_avaliativo_3/services/api_service.dart';
 import 'package:projeto_avaliativo_3/services/notification_manager.dart';
@@ -26,10 +22,9 @@ void callbackDispatcher() {
 class BackgroundTasksService {
   static final NotificationManager _notificationManager = NotificationManager();
   static final ApiService _apiService = ApiService();
-  static final DatabaseHelper _databaseHelper = DatabaseHelper();
 
   Future<void> initialize() async {
-    await Workmanager().initialize(callbackDispatcher, isInDebugMode: true);
+    await Workmanager().initialize(callbackDispatcher, isInDebugMode: false);
     await _notificationManager.configurarNotificacaoLocal();
 
     var prefsInstance = await SharedPreferences.getInstance();
@@ -46,42 +41,14 @@ class BackgroundTasksService {
       NotificationManager().sendProcessNotification(3, "Aviso", "Sincronizando com APIs");
     }
 
-    // await _notificationManager.notificacoesLocais.show(
-    //   0,
-    //   'Sincronizando',
-    //   'Buscando dados das APIs NewsApi e NewsData...',
-    //   const NotificationDetails(
-    //     android: AndroidNotificationDetails(
-    //       'sync_channel', 'News Sync',
-    //       channelDescription: 'Canal de sincronização',
-    //       importance: Importance.high,
-    //       priority: Priority.high,
-    //     ),
-    //   ),
-    // );
-
     try {
       var activeKeywords =  keywords.where((k) => k.fetchActive).toList();
-      // List<String?> activeKeywords = Keyword.extractKeywords(activeKeywordsEntities);
 
       await _apiService.fetchNews(activeKeywords, true);
       await _apiService.fetchNews(activeKeywords, false);
 
     } catch (e) {
       NotificationManager().sendProcessNotification(123, "Erro na Sincronização", "Falha ao buscar dados: $e");
-      // await _notificationManager.notificacoesLocais.show(
-      //   1,
-      //   'Erro na Sincronização',
-      //   'Falha ao buscar dados: $e',
-      //   const NotificationDetails(
-      //     android: AndroidNotificationDetails(
-      //       'error_channel', 'News Sync Error',
-      //       channelDescription: 'Canal de sincronização',
-      //       importance: Importance.high,
-      //       priority: Priority.high,
-      //     ),
-      //   ),
-      // );
     }
   }
 
@@ -93,17 +60,10 @@ class BackgroundTasksService {
   }
 
   static void registerPeriodicTask({Duration frequency = const Duration(minutes: 15)}) {
-    // var selected = Keyword.getSelected();
-    //
-    // Map<String, dynamic> inputData = {
-    //   'keywords': selected.map((x) => x.toJsonSimple()).toList(),
-    // };
-
     Workmanager().registerPeriodicTask(
       periodicTask,
       periodicTask,
       frequency: frequency,
-      // inputData: inputData.toString()
     );
   }
 

@@ -40,7 +40,7 @@ class NotificationManager {
       const NotificationDetails(
         android: AndroidNotificationDetails(
           'sync_channel',
-          'News Sync',
+          'Sincronizacao',
           channelDescription: 'Canal de notícias',
           importance: Importance.high,
           priority: Priority.high,
@@ -48,8 +48,6 @@ class NotificationManager {
       ),
       payload: newsJson.toString(),
     );
-
-    // await trackUnclickedNotification(id, newsJson);
   }
 
   void sendProcessNotification(int id, String title, String description) async {
@@ -68,25 +66,4 @@ class NotificationManager {
       ),
     );
   }
-
-  // Future<void> trackUnclickedNotification(int id, dynamic payload) async {
-  //   final prefs = await SharedPreferences.getInstance();
-  //   Map<String, String> unclickedNotifications = {};
-  //
-  //   if (prefs.containsKey('unclicked_notifications')) {
-  //     unclickedNotifications = Map<String, String>.from(jsonDecode(prefs.getString('unclicked_notifications')!));
-  //   }
-  //
-  //   unclickedNotifications[id.toString()] = payload;
-  //   await prefs.setString('unclicked_notifications', jsonEncode(unclickedNotifications));
-  // }
-  //
-  // Future<void> removeUnclickedNotification(int id) async {
-  //   final prefs = await SharedPreferences.getInstance();
-  //   if (prefs.containsKey('unclicked_notifications')) {
-  //     Map<String, String> unclickedNotifications = Map<String, String>.from(jsonDecode(prefs.getString('unclicked_notifications')!));
-  //     unclickedNotifications.remove(id.toString());
-  //     await prefs.setString('unclicked_notifications', jsonEncode(unclickedNotifications));
-  //   }
-  // }
 }
